@@ -1,3 +1,5 @@
+import time
+from datetime import datetime
 from math import sqrt
 
 
@@ -5,6 +7,7 @@ class Rules:
     dispatch = None
     arg = None
     task_a = dict()
+    task_b = dict()
     task_f = dict()
 
     def __init__(self):
@@ -17,18 +20,35 @@ class Rules:
             'task_f': 'do_task_f'
         }
         self.task_a["min_total_delay"] = 0
+        self.task_b["min_total_delay"] = 0
+        self.task_b["timer"] = 0
         self.task_f["path_changes_counter"] = 0
 
     # min_total_delay greater than 150 millisecond
     def do_task_a(self, arg):
         if abs(arg['min_total_delay'] - self.task_a["min_total_delay"]) > 150:
             print('min_total_delay greater than 150 millisecond')
-        self.task_a["min_total_delay"] = arg['min_total_delay']
+        self.task_a["min_total_delay"] = arg["min_total_delay"]
 
-    # min_total_delay greater than 150 millisecond for 1 minute
-    @staticmethod
-    def do_task_b(arg):
-        pass
+    # min_total_delay greater than 150 millisecond for 2 seconds
+    def do_task_b(self, arg):
+        if abs(arg["min_total_delay"] - self.task_b["min_total_delay"]) > 150:
+            if self.task_b["timer"] == 0:
+                date_time_obj = time.mktime(datetime.strptime(arg["time"], '%Y-%m-%dT%H:%M:%S.%fZ').timetuple())
+                self.task_b["timer"] = date_time_obj
+            else:
+                date_time_obj = time.mktime(datetime.strptime(arg["time"], '%Y-%m-%dT%H:%M:%S.%fZ').timetuple())
+                if date_time_obj - self.task_b["timer"] >= 2:
+                    print("min_total_delay greater than 150 millisecond for 2 seconds")
+                    print(datetime.fromtimestamp(date_time_obj))
+                    print(datetime.fromtimestamp(self.task_b["timer"]))
+                    self.task_b["timer"] = 0
+        else:
+            self.task_b["timer"] = 0
+
+        self.task_b["min_total_delay"] = arg['min_total_delay']
+
+
     # save the time
     # compare the time with the one save if it is > that 0
     # if the time is greater that 150 milliseconds and something else is happening, print out what is happening
